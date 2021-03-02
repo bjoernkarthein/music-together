@@ -193,7 +193,7 @@ const scopes = [
 ];
 
 const spotifyApi = new SpotifyWebApi({
-    redirectUri: 'http://localhost:2000/callback/',
+    redirectUri: window.location.href + 'callback/',
     clientId: '603774c1ea1d433f84d34ec5438a025c',
     clientSecret: 'c50d849c942444eaa0c3cc1a75c83797'
 });
