@@ -1,14 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
 body {
     margin: 0;
     padding: 0;
 
     background: #1A1A1A;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Poppins', sans-serif;
+}
+
+#invitation-code {
+  background: #F9DC5C;
+  
+  height: 5rem;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 5rem;
+  color: #1A1A1A;
+  font-weight: bolder;
+}
+
+.invisible {
+  display: none;
+}
+
+.offScreen {
+  position: fixed;
+  bottom: -4rem !important;
+
+  transition: all .3s ease-in-out;
+}
+
+#code-button-container {
+  display: flex;
+  width: 5rem;
+  margin: auto;
+  justify-content: space-between;
+}
+
+#copy {
+  background-image: url("./icons/copy.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 50%;
+}
+
+#join {
+  background-image: url("./icons/join.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 60%;
+}
+
+.small-button {
+  width: 2rem;
+  height: 2rem;
+  background: #ED254E;
+
+  transition: all .2s ease-in-out;
+}
+
+.small-button:hover {
+  cursor: pointer;
+  background: #b11c3a;
 }
 
 #container-box {
     margin: auto;
-    padding-top: 10rem;
+    padding-top: 5rem;
 
     display: flex;
     flex-direction: row;
@@ -52,19 +110,20 @@ body {
     height: 100%; 
     overflow: auto; 
     background-color: rgb(0,0,0); 
-    background-color: rgba(0,0,0,0.4); 
+    background-color: rgba(0, 0, 0, 0.7); 
   }
   
   .modal-content {
-    background-color: #fefefe;
+    background-color:  rgb(228, 228, 228);
+    color: #1A1A1A;
     margin: auto;
     padding: 20px;
-    border: 1px solid #888;
+    border: 2px solid #ED254E;
     width: 30%;
   }
   
   .close {
-    color: #aaaaaa;
+    color: #505050;
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -76,3 +135,58 @@ body {
     text-decoration: none;
     cursor: pointer;
   }
+
+#chat-window {
+  position: fixed;
+  bottom: 2rem;
+  left: 0;
+
+  width: 22.75rem;
+  height: 25rem;
+
+  background: white;
+}
+
+#messages { list-style-type: none; margin: 0; padding: 0; }
+#messages > li { padding: 0.5rem 1rem; }
+#messages > li:nth-child(odd) { background: #efefef; }
+
+  #chat-input {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+
+  width: 20rem;
+  height: 2rem;
+}
+
+#send {
+  position: fixed;
+  bottom: 0;
+  left: 20.4rem;
+
+  width: 2.4rem;
+  height: 2.4rem;
+  background-image: url("./icons/send.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 50%;
+}
+
+#messageToast {
+  position: fixed;
+  bottom: 5rem;
+  left: calc(50% - 10rem);
+  background: #ED254E;
+  color: white;
+
+  text-align: center;
+  vertical-align: middle;
+  line-height: 3rem;
+
+  width: 20rem;
+  height: 3rem;
+
+  text-overflow: ellipsis;
+  box-shadow: 1rem 0 2rem black;
+}

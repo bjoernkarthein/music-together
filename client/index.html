@@ -3,13 +3,22 @@
 
 <head>
     <title>Music Together</title>
-    <link rel="stylesheet" type="text/css" href="index.css">
+    <link rel="stylesheet" type="text/css" href="client/index.css">
 </head>
 
 <body>
+    <div id="invitation-code">
+        <span id="code"></span>
+        <input type="text" id="code-input" class="invisible">
+    </div>
+    <div id="code-button-container">
+        <div class="small-button" id="copy"></div>
+        <div class="small-button" id="join"></div>
+    </div>
+
     <div id="container-box">
-        <div class="user-container" id="user1">+</div>
-        <div class="user-container" id="user2">+</div>
+        <div class="user-container" id="user1" onclick="getAccessToken(id)">+</div>
+        <div class="user-container" id="user2" onclick="getAccessToken(id)">+</div>
     </div>
 
     <div id="control-container"></div>
@@ -17,24 +26,116 @@
     <div id="myModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore
-                et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea
-                rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum
-                dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet
-                clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit
-                amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna
-                aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita
-                kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-
-                Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum
-                dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent
-                luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet,</p>
+            <h2 id="modal-title"></h2>
+            <p id="modal-text"></p>
         </div>
 
     </div>
 
-    <script src="index.js"></script>
+    <div id="chat-window" class="invisible">
+        <ul id="messages"></ul>
+    </div>
+    <input type="text" id="chat-input" onclick="showChat()">
+    <div id="send" class="small-button"></div>
+
+    <div id="messageToast" class="offScreen"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+
+    <script>
+
+        /* ------------------------------ Client Side -------------------------------*/
+
+        let socket = io();
+
+        socket.on('test', function () {
+            console.log("click");
+        });
+
+        socket.on('invitation-code', function (code) {
+            let code_span = document.getElementById('code');
+            code_span.innerHTML = code;
+        });
+
+        socket.on('name', function () {
+            modalTitle.innerHTML = "Enter name";
+            modalText.innerHTML = "Choose a name to be displayed so people recognize you. If you don't choose a name a random one will be created.<br /><br />";
+            modalText.innerHTML += "<input type='text' placeholder='Your name here' id='name-input' onkeydown='setName(this)'>";
+            modal.style.display = "block";
+        });
+
+        joinRoom = function (code) {
+            socket.emit('joinRoom', ({
+                requester: socket.id,
+                room: code
+            }));
+        }
+
+        socket.on('roomNotFound', function (id) {
+            alert("Room " + id + " not found.");
+        });
+
+        socket.on('joinRoom', function (data) {
+            let code_span = document.getElementById('code');
+            code_span.innerHTML = data.room.id;
+
+            let input = document.getElementById("code-input");
+            input.classList.add("invisible");
+            code_span.classList.remove("invisible");
+
+            visible = !visible;
+        });
+
+        sendMessage = function (msg) {
+            socket.emit('chatMessage', ({
+                sender: socket.id,
+                msg: msg
+            }));
+        }
+
+        setName = function (input) {
+            if (event.key === 'Enter') {
+                modal.style.display = "none";
+                socket.emit('name', ({
+                    sender: socket.id,
+                    name: input.value
+                }));
+            }
+        }
+
+        saveAccessTokenForUser = function (id) {
+            socket.emit('saveToken', ({
+                sender: socket.id,
+                container: id
+            }));
+        }
+
+        socket.on('chatMessage', function (data) {
+            let msg = data.msg;
+            let name = data.name;
+
+            let messages = document.getElementById('messages');
+
+            var item = document.createElement('li');
+            item.textContent = name + ": " + msg;
+            messages.appendChild(item);
+            chatWindow.classList.remove("invisible");
+        });
+
+        socket.on('messageToast', function (message) {
+            showMessageToast(message);
+        });
+
+        socket.on('connectedSpotify', function (data) {
+            let url = data.url;
+            let alt = data.alt;
+            let container = document.getElementById(data.container);
+
+            container.innerHTML = "<img src='" + url + "' alt='" + alt + "' style='max-width: 100%; max-height: 100%; display: block;' />";
+        });
+    </script>
+    <script src="client/index.js"></script>
 </body>
 
 </html>
