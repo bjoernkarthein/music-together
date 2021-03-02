@@ -165,7 +165,7 @@ io.on('connection', (socket) => {
     });
 });
 
-/* ---------------- SpotifyWebApi ----------------------- */
+/* ---------------- SpotifyWebApi ------------------------ */
 
 var SpotifyWebApi = require('spotify-web-api-node');
 const { url } = require('inspector');
