@@ -6,7 +6,7 @@ let btn2 = document.getElementById("user2");
 let span = document.getElementsByClassName("close")[0];
 let modalTitle = document.getElementById("modal-title");
 let modalText = document.getElementById("modal-text");
-const messageToast = document.getElementById("messageToast");
+const notifications = document.getElementById("notifications");
 
 span.onclick = function () {
     modal.style.display = "none";
@@ -29,9 +29,8 @@ showChat = function () {
 }
 
 showMessageToast = function (msg) {
-    messageToast.innerHTML = msg;
-    messageToast.classList.remove("offScreen");
-    setTimeout(() => {  messageToast.classList.add("offScreen"); }, 3000);
+    notifications.innerHTML += "<li id ='" + msg + "'><div id='messageToast'>" + msg + "</div></li>";
+    setTimeout(() => { document.getElementById(msg).remove() }, 3000);
 }
 
 let copyButton = document.getElementById("copy");

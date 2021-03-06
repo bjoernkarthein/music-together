@@ -38,7 +38,8 @@
     <input type="text" id="chat-input" onclick="showChat()">
     <div id="send" class="small-button"></div>
 
-    <div id="messageToast" class="offScreen"></div>
+    
+    <ul id="notifications"></ul>
 
     <script src="/socket.io/socket.io.js"></script>
 
@@ -48,10 +49,6 @@
         /* ------------------------------ Client Side -------------------------------*/
 
         let socket = io();
-
-        socket.on('test', function () {
-            console.log("click");
-        });
 
         socket.on('invitation-code', function (code) {
             let code_span = document.getElementById('code');
@@ -66,15 +63,8 @@
         });
 
         joinRoom = function (code) {
-            socket.emit('joinRoom', ({
-                requester: socket.id,
-                room: code
-            }));
+            socket.emit('joinRoom', code);
         }
-
-        socket.on('roomNotFound', function (id) {
-            alert("Room " + id + " not found.");
-        });
 
         socket.on('joinRoom', function (data) {
             let code_span = document.getElementById('code');
@@ -88,27 +78,18 @@
         });
 
         sendMessage = function (msg) {
-            socket.emit('chatMessage', ({
-                sender: socket.id,
-                msg: msg
-            }));
+            socket.emit('chatMessage', msg);
         }
 
         setName = function (input) {
             if (event.key === 'Enter') {
                 modal.style.display = "none";
-                socket.emit('name', ({
-                    sender: socket.id,
-                    name: input.value
-                }));
+                socket.emit('name', input.value);
             }
         }
 
         saveAccessTokenForUser = function (id) {
-            socket.emit('saveToken', ({
-                sender: socket.id,
-                container: id
-            }));
+            socket.emit('saveToken', id);
         }
 
         socket.on('chatMessage', function (data) {

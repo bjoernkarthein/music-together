@@ -23,13 +23,6 @@ body {
   display: none;
 }
 
-.offScreen {
-  position: fixed;
-  bottom: -4rem !important;
-
-  transition: all .3s ease-in-out;
-}
-
 #code-button-container {
   display: flex;
   width: 5rem;
@@ -173,10 +166,25 @@ body {
   background-size: 50%;
 }
 
-#messageToast {
+#notifications {
+  display: flex;
+  flex-direction: column-reverse;
+
   position: fixed;
-  bottom: 5rem;
-  left: calc(50% - 10rem);
+  bottom: 2rem;
+  right: 2rem;
+
+  width: 20rem;
+  height: 50rem;
+
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+
+  pointer-events: none;
+}
+
+#messageToast {
   background: #ED254E;
   color: white;
 
@@ -186,6 +194,7 @@ body {
 
   width: 20rem;
   height: 3rem;
+  margin-top: 1rem;
 
   text-overflow: ellipsis;
   box-shadow: 1rem 0 2rem black;

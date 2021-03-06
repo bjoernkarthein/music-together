@@ -39,6 +39,16 @@ class Room {
             socket.emit(channel, data);
         }
     }
+
+    messagePlayersButNotSelf(self, channel, data) {
+        for (let id in this.players) {
+            if(id == self) {
+                continue;
+            }
+            let socket = SOCKET_LIST[id];
+            socket.emit(channel, data);
+        }
+    }
 }
 
 class Player {
@@ -54,8 +64,12 @@ class Player {
     }
 }
 
-function sendMessageToast(room, message) {
-    room.messagePlayers('messageToast', message);
+function sendMessageToast(room, NOTSELF_FLAG, self, message) {
+    if(NOTSELF_FLAG) {
+        room.messagePlayersButNotSelf(self, 'messageToast', message);
+    } else {
+        room.messagePlayers('messageToast', message);
+    }
 }
 
 function setProfilePicture(token) {
@@ -72,6 +86,9 @@ function setProfilePicture(token) {
             alt: user.display_name,
             container : CONTAINER
         }));
+
+        socket.emit('messageToast', "You connected to Spotify.");
+        sendMessageToast(PLAYERACCESS.room, true, PLAYERACCESS.id, PLAYERACCESS.name + " connected to spotify.");
     })().catch(e => {
         console.error(e);
     });
@@ -102,10 +119,9 @@ io.on('connection', (socket) => {
         io.emit('test');
     });
 
-    socket.on('joinRoom', data => {
-        let player = PLAYER_LIST[data.requester];
-        let roomId = data.room;
+    socket.on('joinRoom', roomId => {
         roomId = roomId.replace(/\s/g, '');
+        let player = PLAYER_LIST[socket.id];
 
         let room = ROOM_LIST[roomId];
 
@@ -136,34 +152,27 @@ io.on('connection', (socket) => {
         });
         console.log(ROOM_LIST);
 
-        sendMessageToast(player.room, player.name + " joined your room.");
+        socket.emit('messageToast', "You joined the room " + roomId + ".");
+        sendMessageToast(player.room, true, socket.id, player.name + " joined your room.");
     });
 
-    socket.on('chatMessage', data => {
-        let sender = data.sender;
-        let msg = data.msg;
-
-        let room = PLAYER_LIST[sender].room;
-        let name = PLAYER_LIST[sender].name;
+    socket.on('chatMessage', msg => {
+        let room = PLAYER_LIST[socket.id].room;
+        let name = PLAYER_LIST[socket.id].name;
         room.messagePlayers('chatMessage', {
             msg: msg,
             name: name
         })
     });
 
-    socket.on('name', data => {
-        let socketId = data.sender;
-        let name = data.name;
-
-        let player = PLAYER_LIST[socketId];
+    socket.on('name', name => {
+        let player = PLAYER_LIST[socket.id];
         player.name = name;
-        sendMessageToast(player.room, "Welcome " + name + ".");
+        socket.emit('messageToast', "Welcome " + name + ".");
     });
 
-    socket.on('saveToken', data => {
-        sender = data.sender;
-        container = data.container;
-        PLAYERACCESS = PLAYER_LIST[sender];
+    socket.on('saveToken', container => {
+        PLAYERACCESS = PLAYER_LIST[socket.id];
         CONTAINER = container;
     });
 });
@@ -200,8 +209,6 @@ const spotifyApi = new SpotifyWebApi({
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET
 });
-
-console.log(process.env);
 
 app.get('/login', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
