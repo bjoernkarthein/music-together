@@ -1,3 +1,5 @@
+require('dotenv').config({path: __dirname + '/.env'});
+
 const express = require('express');
 const app = express();
 const serv = require('http').Server(app);
@@ -5,6 +7,7 @@ const io = require('socket.io')(serv);
 const PORT = process.env.PORT || 2000;
 
 const random_id = require('./random-id');
+const globals = require('./globals');
 
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/client/index.html');
@@ -193,10 +196,12 @@ const scopes = [
 ];
 
 const spotifyApi = new SpotifyWebApi({
-    redirectUri: 'https://music-together-bk.herokuapp.com/callback/',
-    clientId: '603774c1ea1d433f84d34ec5438a025c',
-    clientSecret: 'c50d849c942444eaa0c3cc1a75c83797'
+    redirectUri: globals.URI + '/callback/',
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET
 });
+
+console.log(process.env);
 
 app.get('/login', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
