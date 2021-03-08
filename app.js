@@ -1,4 +1,4 @@
-require('dotenv').config({path: __dirname + '/.env'});
+require('dotenv').config({ path: __dirname + '/.env' });
 
 const express = require('express');
 const app = express();
@@ -36,13 +36,16 @@ class Room {
     messagePlayers(channel, data) {
         for (let id in this.players) {
             let socket = SOCKET_LIST[id];
+            if (socket == undefined) {
+                continue;
+            }
             socket.emit(channel, data);
         }
     }
 
     messagePlayersButNotSelf(self, channel, data) {
         for (let id in this.players) {
-            if(id == self) {
+            if (id == self) {
                 continue;
             }
             let socket = SOCKET_LIST[id];
@@ -62,10 +65,19 @@ class Player {
     getRoomId() {
         return this.room.id;
     }
+
+    authenticate() {
+        if (this.access_token == "") {
+            return 1;
+        }
+
+        spotifyApi.setAccessToken(this.access_token);
+
+    }
 }
 
 function sendMessageToast(room, NOTSELF_FLAG, self, message) {
-    if(NOTSELF_FLAG) {
+    if (NOTSELF_FLAG) {
         room.messagePlayersButNotSelf(self, 'messageToast', message);
     } else {
         room.messagePlayers('messageToast', message);
@@ -84,10 +96,12 @@ function setProfilePicture(token) {
         PLAYERACCESS.room.messagePlayers('connectedSpotify', ({
             url: imgUrl,
             alt: user.display_name,
-            container : CONTAINER
+            container: CONTAINER
         }));
 
+        let socket = SOCKET_LIST[PLAYERACCESS.id];
         socket.emit('messageToast', "You connected to Spotify.");
+        socket.emit('accessControls');
         sendMessageToast(PLAYERACCESS.room, true, PLAYERACCESS.id, PLAYERACCESS.name + " connected to spotify.");
     })().catch(e => {
         console.error(e);
@@ -113,10 +127,6 @@ io.on('connection', (socket) => {
         delete ROOM_LIST[PLAYER_LIST[socket.id].getRoomId()];
         delete PLAYER_LIST[socket.id];
         delete SOCKET_LIST[socket.id];
-    });
-
-    socket.on('click', () => {
-        io.emit('test');
     });
 
     socket.on('joinRoom', roomId => {
@@ -174,6 +184,109 @@ io.on('connection', (socket) => {
     socket.on('saveToken', container => {
         PLAYERACCESS = PLAYER_LIST[socket.id];
         CONTAINER = container;
+    });
+
+    socket.on('nextTrack', () => {
+        let player = PLAYER_LIST[socket.id];
+
+        player.authenticate();
+
+        spotifyApi.skipToNext()
+            .then(function () {
+                console.log('Skip to next');
+            }, function (err) {
+                //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
+                console.log('Something went wrong!', err);
+            });
+
+        spotifyApi.getMyCurrentPlayingTrack()
+            .then(function (data) {
+                if (data.body.item == undefined) {
+                    socket.emit('messageToast', "Open Spotify and select a song.");
+                } else {
+                    player.room.messagePlayers('getCurrentTrack', data.body.item.uri);
+                }
+            }, function (err) {
+                console.log('Something went wrong!', err);
+            });
+    });
+
+    socket.on('prevTrack', () => {
+        let player = PLAYER_LIST[socket.id];
+
+        player.authenticate();
+
+        spotifyApi.skipToPrevious()
+            .then(function () {
+                console.log('Skip to previous');
+            }, function (err) {
+                //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
+                console.log('Something went wrong!', err);
+            });
+
+        spotifyApi.getMyCurrentPlayingTrack()
+            .then(function (data) {
+                if (data.body.item == undefined) {
+                    socket.emit('messageToast', "Open Spotify and select a song.");
+                } else {
+                    player.room.messagePlayers('getCurrentTrack', data.body.item.uri);
+                }
+            }, function (err) {
+                console.log('Something went wrong!', err);
+            });
+    });
+
+    socket.on('getCurrentTrack', () => {
+        let player = PLAYER_LIST[socket.id];
+        let room = player.room;
+        let members = room.players;
+        
+        for (let id in members) {
+        player = PLAYER_LIST[id];
+        player.authenticate();
+
+        spotifyApi.getMyCurrentPlaybackState()
+            .then(function (data) {
+                // Output items
+                if (data.body && data.body.is_playing) {
+                    spotifyApi.pause()
+                        .then(function () {
+                            console.log('Playback paused');
+                        }, function (err) {
+                            //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
+                            console.log('Something went wrong!', err);
+                        });
+                } else {
+                    spotifyApi.play()
+                        .then(function () {
+                            console.log('Playback started');
+                        }, function (err) {
+                            //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
+                            console.log('Something went wrong!', err);
+                        });
+                }
+            }, function (err) {
+                console.log('Something went wrong!', err);
+            });
+
+        spotifyApi.getMyCurrentPlayingTrack()
+            .then(function (data) {
+                if (data.body.item == undefined) {
+                    socket.emit('messageToast', "Open Spotify and select a song.");
+                } else {
+                    player.room.messagePlayers('getCurrentTrack', data.body.item.uri);
+                }
+            }, function (err) {
+                console.log('Something went wrong!', err);
+            });
+
+        }
+
+    });
+
+    socket.on('moveMouse', data => {
+        let player = PLAYER_LIST[socket.id];
+        player.room.messagePlayers('moveMouse', data);
     });
 });
 

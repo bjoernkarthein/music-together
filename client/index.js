@@ -7,6 +7,8 @@ let span = document.getElementsByClassName("close")[0];
 let modalTitle = document.getElementById("modal-title");
 let modalText = document.getElementById("modal-text");
 const notifications = document.getElementById("notifications");
+let controls = document.getElementById("controls");
+let player = document.getElementById("player");
 
 span.onclick = function () {
     modal.style.display = "none";
@@ -38,6 +40,9 @@ let joinButton = document.getElementById("join");
 let visible = true;
 let chatWindow = document.getElementById("chat-window");
 let sendButton = document.getElementById("send");
+let playButton = document.getElementById("accessBtn");
+let nextButton = document.getElementById("nextBtn");
+let prevButton = document.getElementById("prevBtn");
 
 copyButton.onclick = function () {
     let code = document.getElementById("invitation-code");
@@ -68,6 +73,18 @@ joinButton.onclick = function () {
     }
 
     visible = !visible;
+}
+
+playButton.onclick = function () {
+    getTrack();
+}
+
+nextButton.onclick = function () {
+    nextTrack();
+}
+
+prevButton.onclick = function () {
+    prevTrack();
 }
 
 const codeInput = document.getElementById("code-input");
@@ -101,4 +118,19 @@ function getAccessToken(id) {
     saveAccessTokenForUser(id);
     window.open(window.location.href + 'login');
 }
+
+function displayControls() {
+    controls.classList.remove("invisible");
+}
+
+function setCurrentTrack(uri) {
+    let uriParts = uri.split(':');
+    let trackId = uriParts[2];
+    player.src = "https://open.spotify.com/embed/track/" + trackId;
+    player.classList.remove("invisible");
+}
+
+$(document).on('mousemove', function (event) {
+    sendMouseCoordinates(event.pageX, event.pageY);
+});
 

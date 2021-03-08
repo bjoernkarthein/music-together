@@ -21,7 +21,15 @@
         <div class="user-container" id="user2" onclick="getAccessToken(id)">+</div>
     </div>
 
-    <div id="control-container"></div>
+    <div id="control-container">
+        <iframe id="player" class="invisible" src="" frameborder="0" allowtransparency="true"
+            allow="encrypted-media"></iframe>
+    </div>
+    <div class="invisible" id="controls">
+        <div class="small-button" id="prevBtn">&lt</div>
+        <div id="accessBtn">Start/Stop</div>
+        <div class="small-button" id="nextBtn">&gt</div>
+    </div>
 
     <div id="myModal" class="modal">
         <div class="modal-content">
@@ -38,11 +46,11 @@
     <input type="text" id="chat-input" onclick="showChat()">
     <div id="send" class="small-button"></div>
 
-    
+
     <ul id="notifications"></ul>
 
     <script src="/socket.io/socket.io.js"></script>
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     <script>
 
@@ -92,6 +100,22 @@
             socket.emit('saveToken', id);
         }
 
+        getTrack = function () {
+            socket.emit('getCurrentTrack');
+        }
+
+        nextTrack = function () {
+            socket.emit('nextTrack');
+        }
+
+        prevTrack = function () {
+            socket.emit('prevTrack');
+        }
+
+        sendMouseCoordinates = function(x,y) {
+            socket.emit('moveMouse', {x: x, y: y, id: "cursor-" + socket.id});
+        }
+
         socket.on('chatMessage', function (data) {
             let msg = data.msg;
             let name = data.name;
@@ -115,6 +139,29 @@
 
             container.innerHTML = "<img src='" + url + "' alt='" + alt + "' style='max-width: 100%; max-height: 100%; display: block;' />";
         });
+
+        socket.on('accessControls', function () {
+            displayControls();
+        });
+
+        socket.on('getCurrentTrack', function (uri) {
+            setCurrentTrack(uri);
+        });
+
+        socket.on('moveMouse', data => {
+            let x = data.x;
+            let y = data.y;
+            let id = data.id;
+
+            if($('.pointer[session_id="' + id + '"]').length <= 0) {
+                $('body').append('<div class="pointer" session_id="' + id + '"></div>');
+            }
+            var $pointer = $('.pointer[session_id="' + id + '"]');
+
+            $pointer.css('left', x);
+            $pointer.css('top', y);
+        });
+
     </script>
     <script src="client/index.js"></script>
 </body>

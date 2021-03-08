@@ -1,11 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
+* {
+  cursor: none !important;
+}
+
+html {
+  margin: 0;
+  height: 100%;
+}
+
 body {
     margin: 0;
     padding: 0;
 
     background: #1A1A1A;
     font-family: 'Poppins', sans-serif;
+
+    overflow: hidden;
 }
 
 #invitation-code {
@@ -20,7 +31,7 @@ body {
 }
 
 .invisible {
-  display: none;
+  display: none !important;
 }
 
 #code-button-container {
@@ -49,11 +60,28 @@ body {
   height: 2rem;
   background: #ED254E;
 
+  text-align: center;
+  vertical-align: middle;
+  line-height: 2rem;
+  color: white;
+  font-weight: bold;
+
   transition: all .2s ease-in-out;
 }
 
+#prevBtn {
+  width: 3rem !important;
+  height: 3rem !important;
+  line-height: 3rem !important;
+}
+
+#nextBtn {
+  width: 3rem !important;
+  height: 3rem !important;
+  line-height: 3rem !important;
+}
+
 .small-button:hover {
-  cursor: pointer;
   background: #b11c3a;
 }
 
@@ -85,11 +113,62 @@ body {
 }
 
 .user-container:hover {
-    cursor: pointer;
-
     background: #ED254E;
     color: #F9DC5C;
     box-shadow: .5rem .5rem black;
+}
+
+#control-container {
+  margin: auto;
+  margin-top: 4rem;
+  width: 70%;
+  height: 20rem;
+  background: #505050;
+
+  position: relative;
+  overflow: hidden;
+}
+
+#controls {
+  display: flex;
+  width: 20%;
+  margin: auto;
+  justify-content: space-between;
+}
+
+#accessBtn {
+  color: white;
+  background: #ED254E;
+  font-weight: bold;
+
+  width: 8rem;
+  height: 3rem;
+
+  text-align: center;
+  vertical-align: middle;
+  line-height: 3rem;
+}
+
+#accessBtn:hover {
+  background: #b11c3a;
+}
+
+.pointer {
+  position: absolute;
+  background: #F9DC5C;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  z-index:10000;
+}
+
+#player {
+  width: 100%;
+  height: 20rem;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
 }
 
 .modal {
@@ -126,7 +205,6 @@ body {
   .close:focus {
     color: #000;
     text-decoration: none;
-    cursor: pointer;
   }
 
 #chat-window {
@@ -172,7 +250,7 @@ body {
 
   position: fixed;
   bottom: 2rem;
-  right: 2rem;
+  right: 4rem;
 
   width: 20rem;
   height: 50rem;
@@ -191,11 +269,15 @@ body {
   text-align: center;
   vertical-align: middle;
   line-height: 3rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 
   width: 20rem;
   height: 3rem;
   margin-top: 1rem;
 
+  overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
   box-shadow: 1rem 0 2rem black;
 }
