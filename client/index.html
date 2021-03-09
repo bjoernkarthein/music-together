@@ -61,11 +61,15 @@
         socket.on('invitation-code', function (code) {
             let code_span = document.getElementById('code');
             code_span.innerHTML = code;
+
+            let handle = window.open("http://play.spotify.com");
+            handle.blur();
+            window.focus();
         });
 
         socket.on('name', function () {
-            modalTitle.innerHTML = "Enter name";
-            modalText.innerHTML = "Choose a name to be displayed so people recognize you. If you don't choose a name a random one will be created.<br /><br />";
+            modalTitle.innerHTML = "Welcome to Play Together";
+            modalText.innerHTML = "This is the App to play DJ for your friends. <br /> Note: You need to allow popups and this only works with a spotify premium membership. <br /> Choose a name to be displayed so people recognize you. If you don't choose a name a random one will be created.<br /><br />";
             modalText.innerHTML += "<input type='text' placeholder='Your name here' id='name-input' onkeydown='setName(this)'>";
             modal.style.display = "block";
         });
@@ -101,19 +105,21 @@
         }
 
         getTrack = function () {
-            socket.emit('getCurrentTrack');
+            socket.emit('getCurrentTrack', false);
         }
 
         nextTrack = function () {
             socket.emit('nextTrack');
+            setTimeout(function () { socket.emit('getCurrentTrack', true); }, 1000);
         }
 
         prevTrack = function () {
             socket.emit('prevTrack');
+            setTimeout(function () { socket.emit('getCurrentTrack', true); }, 1000);
         }
 
-        sendMouseCoordinates = function(x,y) {
-            socket.emit('moveMouse', {x: x, y: y, id: "cursor-" + socket.id});
+        sendMouseCoordinates = function (x, y) {
+            socket.emit('moveMouse', { x: x, y: y, id: "cursor-" + socket.id });
         }
 
         socket.on('chatMessage', function (data) {
@@ -137,6 +143,7 @@
             let alt = data.alt;
             let container = document.getElementById(data.container);
 
+            container.classList.add('user-container-locked');
             container.innerHTML = "<img src='" + url + "' alt='" + alt + "' style='max-width: 100%; max-height: 100%; display: block;' />";
         });
 
@@ -153,7 +160,7 @@
             let y = data.y;
             let id = data.id;
 
-            if($('.pointer[session_id="' + id + '"]').length <= 0) {
+            if ($('.pointer[session_id="' + id + '"]').length <= 0) {
                 $('body').append('<div class="pointer" session_id="' + id + '"></div>');
             }
             var $pointer = $('.pointer[session_id="' + id + '"]');

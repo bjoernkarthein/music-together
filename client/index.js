@@ -9,6 +9,7 @@ let modalText = document.getElementById("modal-text");
 const notifications = document.getElementById("notifications");
 let controls = document.getElementById("controls");
 let player = document.getElementById("player");
+let update = false;
 
 span.onclick = function () {
     modal.style.display = "none";
@@ -126,7 +127,9 @@ function displayControls() {
 function setCurrentTrack(uri) {
     let uriParts = uri.split(':');
     let trackId = uriParts[2];
-    player.src = "https://open.spotify.com/embed/track/" + trackId;
+    if (player.src != "https://open.spotify.com/embed/track/" + trackId) {
+        player.src = "https://open.spotify.com/embed/track/" + trackId;
+    }
     player.classList.remove("invisible");
 }
 

@@ -90,7 +90,10 @@ function setProfilePicture(token) {
         const me = await spotifyApi.getMe();
         let user = me.body;
         console.log(user);
-        let imgUrl = user.images[0].url;
+        let imgUrl = "";
+        if (user.images.length > 0) {
+            imgUrl = user.images[0].url;
+        }
         console.log(imgUrl);
 
         PLAYERACCESS.room.messagePlayers('connectedSpotify', ({
@@ -198,17 +201,6 @@ io.on('connection', (socket) => {
                 //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
                 console.log('Something went wrong!', err);
             });
-
-        spotifyApi.getMyCurrentPlayingTrack()
-            .then(function (data) {
-                if (data.body.item == undefined) {
-                    socket.emit('messageToast', "Open Spotify and select a song.");
-                } else {
-                    player.room.messagePlayers('getCurrentTrack', data.body.item.uri);
-                }
-            }, function (err) {
-                console.log('Something went wrong!', err);
-            });
     });
 
     socket.on('prevTrack', () => {
@@ -223,64 +215,51 @@ io.on('connection', (socket) => {
                 //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
                 console.log('Something went wrong!', err);
             });
-
-        spotifyApi.getMyCurrentPlayingTrack()
-            .then(function (data) {
-                if (data.body.item == undefined) {
-                    socket.emit('messageToast', "Open Spotify and select a song.");
-                } else {
-                    player.room.messagePlayers('getCurrentTrack', data.body.item.uri);
-                }
-            }, function (err) {
-                console.log('Something went wrong!', err);
-            });
     });
 
-    socket.on('getCurrentTrack', () => {
+    socket.on('getCurrentTrack', (updateOnly) => {
         let player = PLAYER_LIST[socket.id];
-        let room = player.room;
-        let members = room.players;
-        
-        for (let id in members) {
-        player = PLAYER_LIST[id];
+
         player.authenticate();
 
-        spotifyApi.getMyCurrentPlaybackState()
-            .then(function (data) {
-                // Output items
-                if (data.body && data.body.is_playing) {
-                    spotifyApi.pause()
-                        .then(function () {
-                            console.log('Playback paused');
-                        }, function (err) {
-                            //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
-                            console.log('Something went wrong!', err);
-                        });
-                } else {
-                    spotifyApi.play()
-                        .then(function () {
-                            console.log('Playback started');
-                        }, function (err) {
-                            //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
-                            console.log('Something went wrong!', err);
-                        });
-                }
-            }, function (err) {
-                console.log('Something went wrong!', err);
-            });
+        if (!updateOnly) {
+            spotifyApi.getMyCurrentPlaybackState()
+                .then(function (data) {
+                    // Output items
+                    if (data.body && data.body.is_playing) {
+                        spotifyApi.pause()
+                            .then(function () {
+                                console.log('Playback paused');
+                            }, function (err) {
+                                //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
+                                console.log('Something went wrong!', err);
+                            });
+                    } else {
+                        spotifyApi.play()
+                            .then(function () {
+                                console.log('Playback started');
+                            }, function (err) {
+                                //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
+                                console.log('Something went wrong!', err);
+                                socket.emit('messageToast', "Open Spotify and select a song.");
+                            });
+                    }
+                }, function (err) {
+                    console.log('Something went wrong!', err);
+                });
+        }
 
         spotifyApi.getMyCurrentPlayingTrack()
             .then(function (data) {
                 if (data.body.item == undefined) {
-                    socket.emit('messageToast', "Open Spotify and select a song.");
+                    console.log("No active device");
                 } else {
+                    console.log(data.body.item.name);
                     player.room.messagePlayers('getCurrentTrack', data.body.item.uri);
                 }
             }, function (err) {
                 console.log('Something went wrong!', err);
             });
-
-        }
 
     });
 
