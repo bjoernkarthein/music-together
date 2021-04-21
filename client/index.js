@@ -1,5 +1,7 @@
-let modal = document.getElementById("myModal");
+import 'https://cdn.jsdelivr.net/npm/socket.io-client@3.1.0/dist/socket.io.js';
+let socket = io();
 
+let modal = document.getElementById("myModal");
 let btn1 = document.getElementById("user1");
 let btn2 = document.getElementById("user2");
 
@@ -10,6 +12,10 @@ const notifications = document.getElementById("notifications");
 let controls = document.getElementById("controls");
 let player = document.getElementById("player");
 let update = false;
+let timerExists = false;
+
+btn1.addEventListener("click", getAccessToken);
+btn2.addEventListener("click", getAccessToken);
 
 span.onclick = function () {
     modal.style.display = "none";
@@ -27,11 +33,11 @@ window.onclick = function (event) {
     chatWindow.classList.add("invisible");
 }
 
-showChat = function () {
+function showChat() {
     chatWindow.classList.remove("invisible");
 }
 
-showMessageToast = function (msg) {
+function showMessageToast(msg) {
     notifications.innerHTML += "<li id ='" + msg + "'><div id='messageToast'>" + msg + "</div></li>";
     setTimeout(() => { document.getElementById(msg).remove() }, 3000);
 }
@@ -44,6 +50,7 @@ let sendButton = document.getElementById("send");
 let playButton = document.getElementById("accessBtn");
 let nextButton = document.getElementById("nextBtn");
 let prevButton = document.getElementById("prevBtn");
+let nameInput;
 
 copyButton.onclick = function () {
     let code = document.getElementById("invitation-code");
@@ -96,6 +103,7 @@ codeInput.addEventListener("keyup", function (event) {
 });
 
 const chatInput = document.getElementById("chat-input");
+chatInput.addEventListener ("click", showChat);
 chatInput.addEventListener("keyup", function (event) {
     if (event.key === "Enter") {
         if (chatInput.value == "") {
@@ -114,8 +122,8 @@ sendButton.onclick = function () {
     chatInput.value = "";
 }
 
-function getAccessToken(id) {
-    console.log(id);
+function getAccessToken(event) {
+    let id = event.target.id
     saveAccessTokenForUser(id);
     window.open(window.location.href + 'login');
 }
@@ -133,7 +141,108 @@ function setCurrentTrack(uri) {
     player.classList.remove("invisible");
 }
 
-$(document).on('mousemove', function (event) {
-    sendMouseCoordinates(event.pageX, event.pageY);
+/* ------------------------------ Client Side Socket Stuff -------------------------------*/
+
+socket.on('invitation-code', function (code) {
+    let code_span = document.getElementById('code');
+    code_span.innerHTML = code;
 });
+
+socket.on('name', function () {
+    modalTitle.innerHTML = "Welcome to Play Together";
+    modalText.innerHTML = "This is the App to play DJ for your friends. <br /> Note: You need to allow popups and this only works with a spotify premium membership. <br /> If Spotify Web Player wasn't opened in a new tab click <a href='http://play.spotify.com' target='_blank'>here</a> to open it. <br /> Choose a name to be displayed so people recognize you. If you don't choose a name a random one will be created.<br /><br />";
+    modalText.innerHTML += "<input type='text' placeholder='Your name here' id='name-input'>";
+    modal.style.display = "block";
+
+    nameInput = document.getElementById("name-input");
+    nameInput.addEventListener("keyup", function (event) {
+        if (event.key === "Enter") {
+            if (nameInput.value == "") {
+                return;
+            }
+            modal.style.display = "none";
+            socket.emit('name', nameInput.value);
+        }
+    });
+});
+
+function joinRoom(code) {
+    socket.emit('joinRoom', code);
+}
+
+socket.on('joinRoom', function (data) {
+    let code_span = document.getElementById('code');
+    code_span.innerHTML = data.room.id;
+
+    let input = document.getElementById("code-input");
+    input.classList.add("invisible");
+    code_span.classList.remove("invisible");
+
+    visible = !visible;
+});
+
+function sendMessage (msg) {
+    socket.emit('chatMessage', msg);
+}
+
+function saveAccessTokenForUser (id) {
+    socket.emit('saveToken', id);
+}
+
+function getTrack () {
+    socket.emit('getCurrentTrack', false);
+}
+
+function nextTrack () {
+    socket.emit('nextTrack');
+    setTimeout(function () { socket.emit('getCurrentTrack', true); }, 1000);
+}
+
+function prevTrack () {
+    socket.emit('prevTrack');
+    setTimeout(function () { socket.emit('getCurrentTrack', true); }, 1000);
+}
+
+socket.on('chatMessage', function (data) {
+    let msg = data.msg;
+    let name = data.name;
+
+    let messages = document.getElementById('messages');
+
+    var item = document.createElement('li');
+    item.textContent = name + ": " + msg;
+    messages.appendChild(item);
+    chatWindow.classList.remove("invisible");
+});
+
+socket.on('messageToast', function (message) {
+    showMessageToast(message);
+});
+
+socket.on('connectedSpotify', function (data) {
+    let url = data.url;
+    let alt = data.alt;
+    let container = document.getElementById(data.container);
+
+    container.classList.add('user-container-locked');
+    container.innerHTML = "<img src='" + url + "' alt='" + alt + "' style='max-width: 100%; max-height: 100%; display: block;' />";
+});
+
+socket.on('accessControls', function () {
+    displayControls();
+});
+
+socket.on('getCurrentTrack', function (uri) {
+    setCurrentTrack(uri);
+    // update = !update;
+
+    // if (update && !timerExists) {
+    //     var timerId = setInterval(function() {socket.emit('getCurrentTrack', true);}, 5000);
+    //     timerExists = true;
+    // } else {
+    //     clearInterval(timerId);
+    //     timerExists = false;
+    // }
+});
+
 

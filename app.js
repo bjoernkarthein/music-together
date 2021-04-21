@@ -262,11 +262,6 @@ io.on('connection', (socket) => {
             });
 
     });
-
-    socket.on('moveMouse', data => {
-        let player = PLAYER_LIST[socket.id];
-        player.room.messagePlayers('moveMouse', data);
-    });
 });
 
 /* ---------------- SpotifyWebApi ------------------------ */
